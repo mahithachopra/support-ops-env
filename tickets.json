@@ -1,0 +1,5 @@
+[
+  {"id": "1", "text": "I was charged twice", "category": "billing", "priority": "high"},
+  {"id": "2", "text": "App crashes on login", "category": "technical", "priority": "high"},
+  {"id": "3", "text": "Forgot password", "category": "account", "priority": "medium"}
+]
