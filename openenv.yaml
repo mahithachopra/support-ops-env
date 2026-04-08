@@ -1,0 +1,22 @@
+name: support_ops_env
+description: Multi-step customer support automation environment
+version: 1.0
+
+entry_point: env.core:SupportOpsEnv
+
+observation_space:
+  type: object
+
+action_space:
+  type: object
+
+reward_space:
+  type: object
+
+tasks:
+  - name: classification_easy
+    description: Classify support ticket
+  - name: action_medium
+    description: Take correct action
+  - name: resolution_hard
+    description: Fully resolve ticket
