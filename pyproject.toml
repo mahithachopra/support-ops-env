@@ -5,11 +5,13 @@ description = "OpenEnv environment for customer support automation"
 authors = [
     {name = "Mahitha"}
 ]
+requires-python = ">=3.10"
+
 dependencies = [
     "fastapi",
     "uvicorn",
     "pydantic",
-    "openenv>=0.2.0"
+    "openenv>=0.1.0"
 ]
 
 [project.scripts]
