@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from env.core import SupportOpsEnv
 from env.models import Action
+import uvicorn
 
 app = FastAPI()
-
 env = SupportOpsEnv()
 
 @app.post("/reset")
@@ -25,3 +25,11 @@ def step(action: dict):
 @app.get("/state")
 def state():
     return env.state()
+
+
+def main():
+    return app
+
+
+if __name__ == "__main__":
+    uvicorn.run("server.app:app", host="0.0.0.0", port=7860)
