@@ -9,7 +9,7 @@ def safe_post(endpoint, data=None):
         response.raise_for_status()
         return response.json()
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error: {e}", flush=True)
         return None
 
 
@@ -33,16 +33,21 @@ def extract_reward(result):
         return 0
 
 
-def run_episode():
+def run_episode(task_name="support_task"):
+    print(f"[START] task={task_name}", flush=True)
+
     obs = safe_post("/reset")
     if not obs:
-        return 0
+        print(f"[END] task={task_name} score=0 steps=0", flush=True)
+        return
 
     total_reward = 0
     done = False
-    steps = 0
+    step_count = 0
 
-    while not done and steps < 10:
+    while not done and step_count < 10:
+        step_count += 1
+
         action = {
             "action_type": "classify",
             "content": "billing"
@@ -52,16 +57,18 @@ def run_episode():
         if not result:
             break
 
-        total_reward += extract_reward(result)
-        done = result.get("done", True)
-        steps += 1
+        reward_value = extract_reward(result)
+        total_reward += reward_value
 
-    return total_reward
+        print(f"[STEP] step={step_count} reward={reward_value}", flush=True)
+
+        done = result.get("done", True)
+
+    print(f"[END] task={task_name} score={total_reward} steps={step_count}", flush=True)
 
 
 if __name__ == "__main__":
     try:
-        score = run_episode()
-        print("Final Score:", score)
+        run_episode()
     except Exception as e:
-        print("Fatal Error:", e)
+        print(f"[END] task=error score=0 steps=0", flush=True)
