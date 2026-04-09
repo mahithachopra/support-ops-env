@@ -1,20 +1,41 @@
-def clamp_score(score):
-    return max(0.01, min(0.99, score))
+def clamp_score(score: float) -> float:
+    """
+    Ensure score is strictly between 0 and 1
+    """
+    if score <= 0:
+        return 0.1
+    if score >= 1:
+        return 0.9
+    return score
 
 
-def classification_grader(state):
-    total = max(1, state.get("total_classifications", 1))
-    correct = state.get("correct_classifications", 0)
-    return clamp_score(correct / total)
+def classification_grader(history):
+    score = 0.0
+
+    for h in history:
+        if h["action_type"] == "classify":
+            score += 0.3
+
+    score = min(score, 0.9)
+    return clamp_score(score)
 
 
-def action_grader(state):
-    total = max(1, state.get("total_actions", 1))
-    correct = state.get("correct_actions", 0)
-    return clamp_score(correct / total)
+def action_grader(history):
+    score = 0.0
+
+    for h in history:
+        if h["action_type"] in ["refund", "escalate"]:
+            score += 0.4
+
+    score = min(score, 0.9)
+    return clamp_score(score)
 
 
-def resolution_grader(state):
-    resolved = state.get("resolved", False)
-    score = 0.7 if resolved else 0.3
+def resolution_grader(history):
+    score = 0.0
+
+    for h in history:
+        if h["action_type"] == "resolve":
+            score = 0.8
+
     return clamp_score(score)
