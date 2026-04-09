@@ -1,91 +1,49 @@
-from env.models import Observation, Action
-from env.graders import (
-    classification_grader,
-    action_grader,
-    resolution_grader
-)
+from typing import Tuple, Dict, Any
+from env.models import Action, Observation
 
 
 class SupportOpsEnv:
     def __init__(self):
-        self.reset()
+        self.tickets = [
+            "Customer was charged twice for subscription",
+            "App crashes when clicking checkout button",
+            "Unable to login to account"
+        ]
+        self.index = 0
+        self.history = []
 
-    def reset(self):
-        self.current_step = 0
-        self.done = False
-
-        self.state_data = {
-            "correct_classifications": 0,
-            "total_classifications": 0,
-            "correct_actions": 0,
-            "total_actions": 0,
-            "resolved": False
-        }
-
-        self.current_ticket = {
-            "text": "Customer was charged twice for subscription",
-            "label": "billing"
-        }
+    def reset(self) -> Observation:
+        self.index = 0
+        self.history = []
 
         return Observation(
-            ticket=self.current_ticket["text"],
-            step=self.current_step
+            current_ticket=self.tickets[self.index],
+            history=self.history
         )
 
-    def step(self, action: Action):
-        if self.done:
-            return self._get_observation(), 0.0, True, {}
+    def step(self, action: Action) -> Tuple[Observation, float, bool, Dict[str, Any]]:
+        reward = 0.5
+        done = False
 
-        self.current_step += 1
-        reward = 0.0
+        # Track history
+        self.history.append({
+            "action_type": action.action_type,
+            "content": action.content
+        })
 
-        # CLASSIFICATION
-        if action.action_type == "classify":
-            self.state_data["total_classifications"] += 1
+        if action.action_type == "resolve":
+            reward = 0.8
+            done = True
+        elif action.action_type == "escalate":
+            reward = 0.6
+        elif action.action_type == "refund":
+            reward = 0.7
+        elif action.action_type == "classify":
+            reward = 0.65
 
-            if action.content == self.current_ticket["label"]:
-                self.state_data["correct_classifications"] += 1
-                reward += 0.5
-            else:
-                reward += 0.2
-
-        # ACTION
-        elif action.action_type in ["refund", "escalate"]:
-            self.state_data["total_actions"] += 1
-
-            if (
-                self.current_ticket["label"] == "billing"
-                and action.action_type == "refund"
-            ):
-                self.state_data["correct_actions"] += 1
-                reward += 0.5
-            else:
-                reward += 0.3
-
-        # RESOLUTION
-        elif action.action_type == "resolve":
-            self.state_data["resolved"] = True
-            reward += 0.4
-
-        # END CONDITION
-        if self.current_step >= 6 or self.state_data["resolved"]:
-            self.done = True
-
-        task_scores = {
-            "classification": classification_grader(self.state_data),
-            "action": action_grader(self.state_data),
-            "resolution": resolution_grader(self.state_data),
-        }
-
-        return self._get_observation(), reward, self.done, {
-            "task_scores": task_scores
-        }
-
-    def state(self):
-        return self.state_data
-
-    def _get_observation(self):
-        return Observation(
-            ticket=self.current_ticket["text"],
-            step=self.current_step
+        obs = Observation(
+            current_ticket=self.tickets[self.index],
+            history=self.history
         )
+
+        return obs, reward, done, {}
