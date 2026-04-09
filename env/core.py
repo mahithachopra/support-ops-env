@@ -1,100 +1,110 @@
-import json
-from .models import Observation, Ticket
-from .reward import reward_fn
-from .graders import grade_classification, grade_action, grade_resolution
+from env.models import Observation, Action
+from env.graders import (
+    classification_grader,
+    action_grader,
+    resolution_grader
+)
+from env.reward import compute_reward
 
 
 class SupportOpsEnv:
     def __init__(self):
-        with open("env/data/tickets.json") as f:
-            self.tickets = json.load(f)
         self.reset()
 
     def reset(self):
-        self.current_index = 0
-        self.history = []
-        self.score = 0
-        self.ticket_actions = {}
+        self.current_step = 0
+        self.done = False
 
-        return self._get_observation()
+        # State tracking
+        self.state_data = {
+            "correct_classifications": 0,
+            "total_classifications": 0,
+            "correct_actions": 0,
+            "total_actions": 0,
+            "resolved": False
+        }
 
-    def _get_observation(self):
-        ticket_dict = self.tickets[self.current_index]
-        ticket = Ticket(**ticket_dict)
+        self.current_ticket = {
+            "text": "Customer was charged twice for subscription",
+            "label": "billing"
+        }
 
         return Observation(
-            current_ticket=ticket,
-            history=self.history
+            ticket=self.current_ticket["text"],
+            step=self.current_step
         )
 
-    def step(self, action):
-        ticket = self.tickets[self.current_index]
+    def step(self, action: Action):
+        if self.done:
+            return self._get_observation(), 0.0, True, {}
 
-        # Reward
-        reward = reward_fn(ticket, action, self.history)
+        self.current_step += 1
 
-        # Update state
-        self.score += reward.score
-        self.history.append(str(action))
+        reward = 0.0
 
-        # Track per-ticket actions
-        if self.current_index not in self.ticket_actions:
-            self.ticket_actions[self.current_index] = []
+        # ---------------------------
+        # CLASSIFICATION TASK
+        # ---------------------------
+        if action.action_type == "classify":
+            self.state_data["total_classifications"] += 1
 
-        self.ticket_actions[self.current_index].append(action)
-
-        info = {}
-        done = False
-
-        # Move to next ticket ONLY after resolution action
-        if action.action_type in ["refund", "escalate", "resolve"]:
-            if self.current_index >= len(self.tickets) - 1:
-                done = True
+            if action.content == self.current_ticket["label"]:
+                self.state_data["correct_classifications"] += 1
+                reward += 0.5
             else:
-                self.current_index += 1
+                reward += 0.2
 
-        # Final grading
-        if done:
-            scores = {
-                "classification": 0.0,
-                "action": 0.0,
-                "resolution": 0.0
-            }
+        # ---------------------------
+        # ACTION TASK
+        # ---------------------------
+        elif action.action_type in ["refund", "escalate"]:
+            self.state_data["total_actions"] += 1
 
-            for idx, ticket in enumerate(self.tickets):
-                actions = self.ticket_actions.get(idx, [])
+            # Simple logic: billing → refund is correct
+            if (
+                self.current_ticket["label"] == "billing"
+                and action.action_type == "refund"
+            ):
+                self.state_data["correct_actions"] += 1
+                reward += 0.5
+            else:
+                reward += 0.3
 
-                classification_actions = [
-                    a for a in actions if a.action_type == "classify"
-                ]
+        # ---------------------------
+        # RESOLUTION TASK
+        # ---------------------------
+        elif action.action_type == "resolve":
+            self.state_data["resolved"] = True
+            reward += 0.4
 
-                action_actions = [
-                    a for a in actions
-                    if a.action_type in ["refund", "escalate", "resolve"]
-                ]
+        # ---------------------------
+        # END CONDITION
+        # ---------------------------
+        if self.current_step >= 6 or self.state_data["resolved"]:
+            self.done = True
 
-                if classification_actions:
-                    scores["classification"] += grade_classification(
-                        ticket, classification_actions[0]
-                    )
+        # ---------------------------
+        # TASK SCORES (STRICT RANGE)
+        # ---------------------------
+        task_scores = {
+            "classification": classification_grader(self.state_data),
+            "action": action_grader(self.state_data),
+            "resolution": resolution_grader(self.state_data),
+        }
 
-                if action_actions:
-                    scores["action"] += grade_action(
-                        ticket, action_actions[0]
-                    )
+        observation = self._get_observation()
 
-                scores["resolution"] += grade_resolution(ticket, actions)
+        info = {
+            "task_scores": task_scores
+        }
 
-            n = len(self.tickets)
-            scores = {k: round(v / n, 2) for k, v in scores.items()}
-
-            info["scores"] = scores
-
-        return self._get_observation(), reward, done, info
+        return observation, reward, self.done, info
 
     def state(self):
-        return {
-            "index": self.current_index,
-            "score": self.score,
-            "steps": len(self.history)
-        }
+        return self.state_data
+
+    def _get_observation(self):
+        return Observation(
+            ticket=self.current_ticket["text"],
+            step=self.current_step
+        )
