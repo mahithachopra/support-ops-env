@@ -1,5 +1,10 @@
 from typing import Tuple, Dict, Any
 from env.models import Action, Observation
+from env.graders import (
+    classification_grader,
+    action_grader,
+    resolution_grader
+)
 
 
 class SupportOpsEnv:
@@ -31,6 +36,7 @@ class SupportOpsEnv:
             "content": action.content
         })
 
+        # Reward logic
         if action.action_type == "resolve":
             reward = 0.8
             done = True
@@ -41,9 +47,17 @@ class SupportOpsEnv:
         elif action.action_type == "classify":
             reward = 0.65
 
+        # Observation
         obs = Observation(
             current_ticket=self.tickets[self.index],
             history=self.history
         )
 
-        return obs, reward, done, {}
+        # ✅ ADD THIS (CRITICAL)
+        task_scores = {
+            "classification": classification_grader(self.history),
+            "action": action_grader(self.history),
+            "resolution": resolution_grader(self.history),
+        }
+
+        return obs, reward, done, {"task_scores": task_scores}
