@@ -1,7 +1,4 @@
-def clamp_score(score: float) -> float:
-    """
-    Ensure score is strictly between 0 and 1
-    """
+def clamp_score(score):
     if score <= 0:
         return 0.1
     if score >= 1:
@@ -10,32 +7,15 @@ def clamp_score(score: float) -> float:
 
 
 def classification_grader(history):
-    score = 0.0
-
-    for h in history:
-        if h["action_type"] == "classify":
-            score += 0.3
-
-    score = min(score, 0.9)
-    return clamp_score(score)
+    score = sum(0.3 for h in history if h["action_type"] == "classify")
+    return clamp_score(min(score, 0.9))
 
 
 def action_grader(history):
-    score = 0.0
-
-    for h in history:
-        if h["action_type"] in ["refund", "escalate"]:
-            score += 0.4
-
-    score = min(score, 0.9)
-    return clamp_score(score)
+    score = sum(0.4 for h in history if h["action_type"] in ["refund", "escalate"])
+    return clamp_score(min(score, 0.9))
 
 
 def resolution_grader(history):
-    score = 0.0
-
-    for h in history:
-        if h["action_type"] == "resolve":
-            score = 0.8
-
+    score = 0.8 if any(h["action_type"] == "resolve" for h in history) else 0.2
     return clamp_score(score)
