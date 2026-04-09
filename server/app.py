@@ -3,7 +3,6 @@ import sys
 import os
 import uvicorn
 
-# ✅ FIX import path (CRITICAL for HF)
 sys.path.append(os.getcwd())
 
 from env.core import SupportOpsEnv
@@ -13,13 +12,11 @@ app = FastAPI()
 env = SupportOpsEnv()
 
 
-# ✅ ROOT (prevents 404 confusion)
 @app.get("/")
 def root():
     return {"status": "running"}
 
 
-# ✅ SAFE RESET
 @app.post("/reset")
 def reset():
     try:
@@ -29,7 +26,6 @@ def reset():
         return {"error": str(e)}
 
 
-# ✅ SAFE STEP
 @app.post("/step")
 def step(action: dict):
     try:
@@ -46,20 +42,16 @@ def step(action: dict):
         return {"error": str(e)}
 
 
-# ✅ STATE
 @app.get("/state")
 def state():
-    try:
-        return env.state()
-    except Exception as e:
-        return {"error": str(e)}
+    return env.state()
 
 
-# ✅ REQUIRED BY VALIDATOR
+# REQUIRED for validator
 def main():
     return app
 
 
-# ✅ RUN SERVER
+# REQUIRED for runtime
 if __name__ == "__main__":
     uvicorn.run("server.app:app", host="0.0.0.0", port=7860)
