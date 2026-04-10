@@ -1,24 +1,38 @@
 import requests
 import os
+import time
 from openai import OpenAI
 
 BASE_URL = "http://localhost:7860"
 
-# ✅ USE THEIR PROXY
 client = OpenAI(
     base_url=os.environ.get("API_BASE_URL"),
     api_key=os.environ.get("API_KEY"),
 )
 
 
+# ✅ WAIT FOR SERVER (CRITICAL FIX)
+def wait_for_server():
+    for _ in range(15):
+        try:
+            r = requests.get(f"{BASE_URL}/", timeout=2)
+            if r.status_code == 200:
+                return True
+        except:
+            time.sleep(2)
+    return False
+
+
+# ✅ SAFE POST WITH RETRIES
 def safe_post(endpoint, data=None):
-    try:
-        response = requests.post(f"{BASE_URL}{endpoint}", json=data)
-        response.raise_for_status()
-        return response.json()
-    except Exception as e:
-        print(f"Error: {e}", flush=True)
-        return None
+    for _ in range(5):
+        try:
+            response = requests.post(f"{BASE_URL}{endpoint}", json=data, timeout=5)
+            if response.status_code == 200:
+                return response.json()
+        except Exception as e:
+            time.sleep(1)
+    return None
 
 
 def extract_reward(result):
@@ -36,7 +50,6 @@ def extract_reward(result):
         return 0
 
 
-# ✅ LLM decides action
 def get_action_from_llm(observation):
     try:
         prompt = f"""
@@ -60,25 +73,23 @@ Respond ONLY in JSON:
             messages=[{"role": "user", "content": prompt}],
         )
 
-        text = response.choices[0].message.content
-
         import json
-        return json.loads(text)
+        return json.loads(response.choices[0].message.content)
 
     except Exception as e:
         print(f"LLM error: {e}", flush=True)
-
-        # fallback (never crash)
-        return {
-            "action_type": "classify",
-            "content": "billing"
-        }
+        return {"action_type": "classify", "content": "billing"}
 
 
 def run_episode(task_name="support_task"):
     print(f"[START] task={task_name}", flush=True)
 
-    obs = safe_post("/reset")
+    # 🔥 WAIT BEFORE CALLING API
+    if not wait_for_server():
+        print(f"[END] task={task_name} score=0 steps=0", flush=True)
+        return
+
+    obs = safe_post("/reset", {})
     if not obs:
         print(f"[END] task={task_name} score=0 steps=0", flush=True)
         return
@@ -110,5 +121,5 @@ def run_episode(task_name="support_task"):
 if __name__ == "__main__":
     try:
         run_episode()
-    except Exception:
-        print("[END] task=error score=0 steps=0", flush=True)
+    except Exception as e:
+        print(f"[END] task=error score=0 steps=0", flush=True)
