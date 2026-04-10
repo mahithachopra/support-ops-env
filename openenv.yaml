@@ -1,22 +1,19 @@
+spec_version: 1
 name: support_ops_env
-description: Multi-step customer support automation environment
-version: 1.0
-entry_point: env.core:SupportOpsEnv
-observation_space:
-  type: object
-action_space:
-  type: object
-reward_space:
-  type: object
+type: environment
+runtime: python
+app: server.app:app
+port: 7860
+
 tasks:
-  - name: classification_easy
-    description: Classify support ticket
+  - id: classification_easy
+    description: Classify support ticket by category
     grader: env.graders:classification_grader
 
-  - name: action_medium
-    description: Take correct action
+  - id: action_medium
+    description: Take correct action on support ticket
     grader: env.graders:action_grader
 
-  - name: resolution_hard
-    description: Fully resolve ticket
+  - id: resolution_hard
+    description: Fully resolve the support ticket
     grader: env.graders:resolution_grader
