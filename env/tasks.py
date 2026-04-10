@@ -1,7 +1,6 @@
 import json
-from graders import classification_grader, action_grader, resolution_grader
+from env.graders import classification_grader, action_grader, resolution_grader
 
-# Load your tickets
 with open("env/data/tickets.json") as f:
     tickets = json.load(f)
 
