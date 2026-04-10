@@ -26,38 +26,41 @@ class SupportOpsEnv:
             history=self.history
         )
 
-    def step(self, action: Action) -> Tuple[Observation, float, bool, Dict[str, Any]]:
-        reward = 0.5
-        done = False
+    def step(self, action: Action):
+    reward = 0.5
+    done = False
 
-        # Track history
-        self.history.append({
-            "action_type": action.action_type,
-            "content": action.content
-        })
+    # Track history
+    self.history.append({
+        "action_type": action.action_type,
+        "content": action.content
+    })
 
-        # Reward logic
-        if action.action_type == "resolve":
-            reward = 0.8
-            done = True
-        elif action.action_type == "escalate":
-            reward = 0.6
-        elif action.action_type == "refund":
-            reward = 0.7
-        elif action.action_type == "classify":
-            reward = 0.65
+    # Reward logic
+    if action.action_type == "resolve":
+        reward = 0.8
+        done = True
+    elif action.action_type == "escalate":
+        reward = 0.6
+    elif action.action_type == "refund":
+        reward = 0.7
+    elif action.action_type == "classify":
+        reward = 0.65
 
-        # Observation
-        obs = Observation(
-            current_ticket=self.tickets[self.index],
-            history=self.history
-        )
+    # Observation
+    obs = Observation(
+        current_ticket=self.tickets[self.index],
+        history=self.history
+    )
 
-        # ✅ ADD THIS (CRITICAL)
-        task_scores = {
-            "classification": classification_grader(self.history),
-            "action": action_grader(self.history),
-            "resolution": resolution_grader(self.history),
-        }
+    # ✅ ALWAYS compute (every step)
+    task_scores = {
+        "classification": classification_grader(self.history),
+        "action": action_grader(self.history),
+        "resolution": resolution_grader(self.history),
+    }
 
-        return obs, reward, done, {"task_scores": task_scores}
+    # 🔥 DEBUG PRINT (IMPORTANT)
+    print("Task Scores:", task_scores, flush=True)
+
+    return obs, reward, done, {"task_scores": task_scores}
