@@ -1,21 +1,21 @@
-def clamp_score(score):
-    if score <= 0:
-        return 0.1
-    if score >= 1:
-        return 0.9
-    return score
+def clamp(score: float) -> float:
+    # Force strict (0,1)
+    return max(0.05, min(score, 0.95))
 
 
 def classification_grader(history):
-    score = sum(0.3 for h in history if h["action_type"] == "classify")
-    return clamp_score(min(score, 0.9))
+    count = sum(1 for h in history if h["action_type"] == "classify")
+    score = 0.2 + 0.2 * count   # always >= 0.2
+    return clamp(score)
 
 
 def action_grader(history):
-    score = sum(0.4 for h in history if h["action_type"] in ["refund", "escalate"])
-    return clamp_score(min(score, 0.9))
+    count = sum(1 for h in history if h["action_type"] in ["refund", "escalate"])
+    score = 0.2 + 0.2 * count
+    return clamp(score)
 
 
 def resolution_grader(history):
-    score = 0.8 if any(h["action_type"] == "resolve" for h in history) else 0.2
-    return clamp_score(score)
+    has_resolve = any(h["action_type"] == "resolve" for h in history)
+    score = 0.3 if not has_resolve else 0.8
+    return clamp(score)
