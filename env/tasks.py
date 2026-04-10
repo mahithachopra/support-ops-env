@@ -6,7 +6,7 @@ with open("env/data/tickets.json") as f:
 
 tasks = [
     {
-        "id": f"task_{tickets[0]['id']}_classify",
+        "id": "classification_easy",
         "prompt": (
             f"Support ticket: '{tickets[0]['text']}'. "
             "Classify this ticket by category (e.g. billing, technical, account)."
@@ -15,7 +15,7 @@ tasks = [
         "grader": classification_grader,
     },
     {
-        "id": f"task_{tickets[1]['id']}_action",
+        "id": "action_medium",
         "prompt": (
             f"Support ticket: '{tickets[1]['text']}'. "
             "Decide the appropriate action: refund, escalate, or resolve."
@@ -24,7 +24,7 @@ tasks = [
         "grader": action_grader,
     },
     {
-        "id": f"task_{tickets[2]['id']}_resolve",
+        "id": "resolution_hard",
         "prompt": (
             f"Support ticket: '{tickets[2]['text']}'. "
             "Handle this ticket end-to-end and resolve the issue."
