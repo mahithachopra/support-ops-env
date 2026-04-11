@@ -8,9 +8,13 @@ class Ticket(BaseModel):
     priority: str
     resolved: bool = False
 
+class HistoryEntry(BaseModel):
+    action_type: str
+    content: Optional[str] = None
+
 class Observation(BaseModel):
     current_ticket: Ticket
-    history: List[str]
+    history: List[HistoryEntry] = []
 
 class Action(BaseModel):
     action_type: str
