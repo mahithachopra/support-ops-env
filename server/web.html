@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SupportOps Env</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --border: #2e2e2e;
+    --accent: #e86c2f;
+    --accent2: #f0a050;
+    --text: #f0ece4;
+    --muted: #888;
+    --green: #4caf82;
+    --red: #e05c5c;
+    --easy: #4caf82;
+    --medium: #e8a030;
+    --hard: #e05c5c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .logo-text { font-family: 'DM Serif Display', serif; font-size: 1.3rem; }
+  .logo-sub { font-size: 0.75rem; color: var(--muted); margin-top: 1px; }
+  .header-links { display: flex; gap: 20px; }
+  .header-links a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 6px 12px;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .header-links a:hover { background: var(--accent); color: #fff; }
+
+  /* Main layout */
+  main {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    padding: 28px 32px;
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  /* Task pills */
+  .task-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .task-pill {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    color: var(--text);
+  }
+  .task-pill:hover { border-color: var(--accent); color: var(--accent); }
+  .task-pill.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .task-pill .badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 999px;
+    text-transform: uppercase;
+  }
+  .task-pill.active .badge { background: rgba(255,255,255,0.25); color: #fff; }
+  .badge-easy { background: rgba(76,175,130,0.15); color: var(--easy); }
+  .badge-medium { background: rgba(232,160,48,0.15); color: var(--medium); }
+  .badge-hard { background: rgba(224,92,92,0.15); color: var(--hard); }
+
+  /* Mode toggle */
+  .mode-toggle {
+    display: flex;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px;
+    margin: 16px 0;
+    width: fit-content;
+  }
+  .mode-btn {
+    padding: 8px 24px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mode-btn.active { background: var(--text); color: var(--bg); }
+
+  /* Episode button */
+  .btn-episode {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+  }
+  .btn-episode:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn-episode:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* Episode area */
+  .episode-area {
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+    gap: 12px;
+    text-align: center;
+  }
+  .episode-area .icon { font-size: 2.5rem; opacity: 0.3; }
+
+  /* Ticket display */
+  .ticket-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .ticket-meta {
+    display: flex; gap: 8px; margin-bottom: 10px;
+  }
+  .ticket-tag {
+    font-size: 0.7rem; font-weight: 600;
+    padding: 3px 9px; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .tag-billing { background: rgba(100,140,255,0.15); color: #7aa0ff; }
+  .tag-technical { background: rgba(200,100,255,0.15); color: #c87eff; }
+  .tag-account { background: rgba(255,200,80,0.15); color: #ffc850; }
+  .tag-high { background: rgba(224,92,92,0.15); color: var(--red); }
+  .tag-medium2 { background: rgba(232,160,48,0.15); color: var(--medium); }
+  .ticket-text { font-size: 0.95rem; line-height: 1.5; }
+
+  /* Action buttons */
+  .actions-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 16px;
+  }
+  .action-btn {
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* History log */
+  .history-log {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    max-height: 160px;
+    overflow-y: auto;
+    color: var(--muted);
+  }
+  .log-entry { padding: 3px 0; border-bottom: 1px solid var(--border); }
+  .log-entry:last-child { border-bottom: none; }
+  .log-action { color: var(--accent); }
+  .log-reward { color: var(--green); }
+
+  /* Right panel */
+  .panel-right { display: flex; flex-direction: column; gap: 0; }
+
+  /* Stats */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .stat-box { text-align: center; }
+  .stat-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-top: 4px; }
+
+  /* Task scores */
+  .score-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.875rem;
+  }
+  .score-row:last-child { border-bottom: none; }
+  .score-bar-wrap { width: 80px; height: 4px; background: var(--border); border-radius: 2px; }
+  .score-bar { height: 4px; border-radius: 2px; background: var(--accent); transition: width 0.5s ease; }
+  .score-val { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--accent); width: 36px; text-align: right; }
+
+  /* Status indicator */
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green);
+    display: inline-block; margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .done-badge {
+    display: inline-block;
+    padding: 4px 12px; border-radius: 999px;
+    background: rgba(76,175,130,0.15);
+    color: var(--green);
+    font-size: 0.75rem; font-weight: 600;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🎫</div>
+    <div>
+      <div class="logo-text">SupportOps Env</div>
+      <div class="logo-sub">Customer support automation · OpenEnv RL environment</div>
+    </div>
+  </div>
+  <div class="header-links">
+    <a href="/docs" target="_blank">API docs ↗</a>
+    <a href="/health" target="_blank">Health ↗</a>
+  </div>
+</header>
+
+<main>
+  <!-- Left panel -->
+  <div>
+    <div class="card">
+      <div class="card-title">Select a Task</div>
+      <div class="task-grid">
+        <div class="task-pill active" data-task="classification_easy" onclick="selectTask(this)">
+          Classification <span class="badge badge-easy">Easy</span>
+        </div>
+        <div class="task-pill" data-task="action_medium" onclick="selectTask(this)">
+          Action Decision <span class="badge badge-medium">Medium</span>
+        </div>
+        <div class="task-pill" data-task="resolution_hard" onclick="selectTask(this)">
+          Full Resolution <span class="badge badge-hard">Hard</span>
+        </div>
+      </div>
+
+      <div class="mode-toggle">
+        <button class="mode-btn active" onclick="setMode('human', this)">Human mode</button>
+        <button class="mode-btn" onclick="setMode('model', this)">Model mode</button>
+      </div>
+
+      <button class="btn-episode" id="newEpisodeBtn" onclick="newEpisode()">▶ New episode</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Episode</div>
+      <div id="episodeArea" class="episode-area">
+        <div class="icon">🎫</div>
+        <div>Select a task and start a new episode<br>to begin handling support tickets</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="panel-right">
+    <div class="card">
+      <div class="card-title">Session Stats</div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-val" id="statEpisodes">0</div>
+          <div class="stat-label">Episodes</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statCorrect">0</div>
+          <div class="stat-label">Resolved</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statBest">0.00</div>
+          <div class="stat-label">Best Score</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Task Scores</div>
+      <div id="taskScores">
+        <div class="score-row">
+          <span style="color:var(--muted);font-size:0.8rem">classification</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="score-bar-wrap"><div class="score-bar" id="bar-classification" style="width:0%"></div></div>
+            <div class="score-val" id="score-classification">—</div>
+          </div>
+        </div>
+        <div class="score-row">
+          <span style="color:var(--muted);font-size:0.8rem">action</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="score-bar-wrap"><div class="score-bar" id="bar-action" style="width:0%"></div></div>
+            <div class="score-val" id="score-action">—</div>
+          </div>
+        </div>
+        <div class="score-row">
+          <span style="color:var(--muted);font-size:0.8rem">resolution</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="score-bar-wrap"><div class="score-bar" id="bar-resolution" style="width:0%"></div></div>
+            <div class="score-val" id="score-resolution">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" id="chooseTitle">Choose an Action</div>
+      <div id="actionPanel" style="color:var(--muted);font-size:0.85rem">
+        Start an episode to see options
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const BASE = '';
+let currentTask = 'classification_easy';
+let mode = 'human';
+let episodeActive = false;
+let steps = 0;
+let episodes = 0, resolved = 0, bestScore = 0;
+
+const TASK_DESCRIPTIONS = {
+  classification_easy: 'Classify this ticket into the correct category',
+  action_medium: 'Decide the best action to take for this ticket',
+  resolution_hard: 'Handle this ticket end-to-end and resolve the issue',
+};
+
+const TICKET_ACTIONS = [
+  { type: 'classify',  label: '🏷 Classify', content: 'billing' },
+  { type: 'refund',    label: '💰 Refund',   content: 'processed' },
+  { type: 'escalate',  label: '📣 Escalate', content: 'manager' },
+  { type: 'resolve',   label: '✅ Resolve',  content: 'closed' },
+];
+
+function selectTask(el) {
+  document.querySelectorAll('.task-pill').forEach(p => {
+    p.classList.remove('active');
+    p.querySelectorAll('.badge').forEach(b => {
+      b.className = 'badge ' + b.className.split(' ').find(c => c.startsWith('badge-'));
+    });
+  });
+  el.classList.add('active');
+  currentTask = el.dataset.task;
+}
+
+function setMode(m, btn) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function newEpisode() {
+  const btn = document.getElementById('newEpisodeBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Starting...';
+  episodeActive = true;
+  steps = 0;
+
+  try {
+    const res = await fetch(BASE + '/reset', { method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}' });
+    const data = await res.json();
+    renderEpisode(data);
+    episodes++;
+    document.getElementById('statEpisodes').textContent = episodes;
+    btn.textContent = '↺ New episode';
+  } catch(e) {
+    document.getElementById('episodeArea').innerHTML = '<div style="color:var(--red)">⚠ Could not connect to server</div>';
+    btn.textContent = '▶ New episode';
+  }
+  btn.disabled = false;
+}
+
+function renderEpisode(obs) {
+  const ticket = obs.current_ticket || {};
+  const catClass = { billing: 'tag-billing', technical: 'tag-technical', account: 'tag-account' }[ticket.category] || 'tag-billing';
+  const prioClass = ticket.priority === 'high' ? 'tag-high' : 'tag-medium2';
+
+  document.getElementById('episodeArea').innerHTML = `
+    <div style="width:100%">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-size:0.8rem;color:var(--muted)"><span class="status-dot"></span>Episode active · Step ${steps}</span>
+        <span style="font-size:0.75rem;color:var(--muted)">Task: <b style="color:var(--text)">${currentTask.replace(/_/g,' ')}</b></span>
+      </div>
+      <div class="ticket-box">
+        <div class="ticket-meta">
+          <span class="ticket-tag ${catClass}">${ticket.category || 'billing'}</span>
+          <span class="ticket-tag ${prioClass}">${ticket.priority || 'high'}</span>
+          <span class="ticket-tag" style="background:rgba(255,255,255,0.06);color:var(--muted)">#${ticket.id || '1'}</span>
+        </div>
+        <div class="ticket-text">${ticket.text || 'Loading ticket...'}</div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:10px">${TASK_DESCRIPTIONS[currentTask]}</div>
+      <div id="historyLog" class="history-log" style="display:${(obs.history||[]).length?'block':'none'}"></div>
+    </div>
+  `;
+  renderActionPanel();
+}
+
+function renderActionPanel() {
+  document.getElementById('chooseTitle').textContent = 'Choose an Action';
+  document.getElementById('actionPanel').innerHTML = `
+    <div class="actions-grid">
+      ${TICKET_ACTIONS.map(a => `
+        <button class="action-btn" onclick="takeAction('${a.type}','${a.content}')">
+          ${a.label}
+        </button>
+      `).join('')}
+    </div>
+    <div style="font-size:0.75rem;color:var(--muted)">Click an action to step the environment</div>
+  `;
+}
+
+async function takeAction(actionType, content) {
+  if (!episodeActive) return;
+  steps++;
+
+  try {
+    const res = await fetch(BASE + '/step', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ action_type: actionType, content })
+    });
+    const data = await res.json();
+
+    // Update scores
+    const scores = (data.info || {}).task_scores || {};
+    updateScores(scores);
+
+    // Update best score
+    const maxScore = Math.max(...Object.values(scores).filter(Number.isFinite));
+    if (maxScore > bestScore) {
+      bestScore = maxScore;
+      document.getElementById('statBest').textContent = bestScore.toFixed(2);
+    }
+
+    // Update history
+    const log = document.getElementById('historyLog');
+    if (log) {
+      log.style.display = 'block';
+      log.innerHTML += `<div class="log-entry">step ${steps}: <span class="log-action">${actionType}</span> → reward <span class="log-reward">${(data.reward||0).toFixed(2)}</span></div>`;
+      log.scrollTop = log.scrollHeight;
+    }
+
+    // Update step counter
+    const stepEl = document.querySelector('.status-dot')?.parentElement;
+    if (stepEl) stepEl.innerHTML = `<span class="status-dot"></span>Episode active · Step ${steps}`;
+
+    if (data.done) {
+      episodeActive = false;
+      resolved++;
+      document.getElementById('statCorrect').textContent = resolved;
+      document.getElementById('chooseTitle').textContent = 'Episode Complete';
+      document.getElementById('actionPanel').innerHTML = `
+        <div style="text-align:center;padding:12px 0">
+          <div class="done-badge">✓ Resolved</div>
+          <div style="margin-top:10px;font-size:0.8rem;color:var(--muted)">Start a new episode to continue</div>
+        </div>`;
+      if (stepEl) stepEl.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px;opacity:0.5"></span>Done · ${steps} steps`;
+    }
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function updateScores(scores) {
+  const map = { classification: 'classification', action: 'action', resolution: 'resolution' };
+  for (const [key, elKey] of Object.entries(map)) {
+    const val = scores[key];
+    if (val !== undefined) {
+      document.getElementById('score-' + elKey).textContent = val.toFixed(2);
+      document.getElementById('bar-' + elKey).style.width = (val * 100) + '%';
+    }
+  }
+}
+</script>
+</body>
+</html>
